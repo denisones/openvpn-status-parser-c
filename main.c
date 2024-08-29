@@ -65,7 +65,6 @@ char **splittingLine(int cnt, char **result, char str[])
     if (resultIndex < cnt)
     {
         result[resultIndex] = (char *)malloc(sizeof(char *) * (strlen(start) + 1));
-        start[strcspn(start, "\n")] = 0;
         strcpy(result[resultIndex], start);
     }
     return result;
@@ -133,10 +132,11 @@ int main(int argc, char **argv)
 
     while (fgets(row, 256, statusLog) != NULL)
     {
+        row[strcspn(row, "\n")] = 0;
         char *t2 = row;
         int cnt = 1;
         while (*(t2++))
-            if (*t2 == ',' && *(t2 + 1) != ',' && *(t2 + 1) != 0)
+            if (*t2 == ',' && *(t2 + 1) != 0)
                 cnt++;
 
         char **columnArr = malloc(cnt * sizeof(char *));
