@@ -1,2 +1,2 @@
 all:
-	gcc -o openvpn-status-parcer main.c
+	gcc -o openvpn-status-parser main.c -std=c99
