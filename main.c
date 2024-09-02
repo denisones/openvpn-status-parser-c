@@ -116,18 +116,25 @@ int main(int argc, char **argv)
         return 0;
     }
 
+    if (strcmp("-v", argv[1]) == 0 || strcmp("--version", argv[1]) == 0)
+    {
+        fprintf(stdout, "v0.0.5\n");
+        return 0;
+    }
+
     char row[256];
     FILE *statusLog = fopen(argv[1], "r");
+    if (statusLog == NULL)
+    {
+        fprintf(stdout, "Ошибка открытия файла %s\n", argv[1]);
+        return 0;
+    }
+
     Result result = malloc(sizeof(struct result));
     if (result == NULL)
     {
         fprintf(stdout, "Ошибка выделения памяти под структуру\n");
         exit(1);
-    }
-    if (statusLog == NULL)
-    {
-        fprintf(stdout, "Ошибка открытия файла %s\n", argv[1]);
-        return 0;
     }
 
     while (fgets(row, 256, statusLog) != NULL)
