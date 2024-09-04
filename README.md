@@ -40,6 +40,28 @@ A simple parser for parsing OpenVPN status files
             "lastRef": "Sat Aug 24 23:41:42 2024",
             "lastRefTime_t": 1724532102
         }
-    ]
+    ],
+    "header": {
+        "clientList": [
+            "Common Name",
+            "Real Address",
+            "Virtual Address",
+            "Virtual IPv6 Address",
+            "Bytes Received",
+            "Bytes Sent",
+            "Connected Since",
+            "Connected Since (time_t)",
+            "Username",
+            "Client ID",
+            "Peer ID"
+        ],
+        "routingTable": [
+            "Virtual Address",
+            "Common Name",
+            "Real Address",
+            "Last Ref",
+            "Last Ref (time_t)"
+        ]
+    }
 }
 ```

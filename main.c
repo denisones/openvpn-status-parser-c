@@ -8,7 +8,14 @@ typedef struct result
     char time[50];
     char clientList[1024 * 30];
     char routingTable[1024 * 30];
+    struct header *header;
 } *Result;
+
+typedef struct header
+{
+    char clientList[512];
+    char routingTable[512];
+} *Header;
 
 typedef struct schema
 {
@@ -70,23 +77,33 @@ char **splittingLine(int cnt, char **result, char str[])
     return result;
 }
 
-int handlingTitle(int cnt, char **split, char *result)
+int handlingString(int cnt, char **split, char *result)
 {
     if (cnt < 2)
         return 0;
     strcpy(result, split[1]);
 }
 
-int handlingTime(int cnt, char **split, char *result)
+int handlingArray(int cnt, char **split, char *result)
 {
     if (cnt < 3)
         return 0;
     char buffer[256] = {'\0'};
-    sprintf(buffer, "[\"%s\", \"%s\"]", split[1], split[2]);
-    strcpy(result, buffer);
+    char bufferArray[256 * 4] = {'\0'};
+
+    for (int i = 1; i < cnt; i++)
+    {
+        sprintf(buffer, "\"%s\"", split[i]);
+        if (i < cnt - 1)
+        {
+            strcat(buffer, ",");
+        }
+        strcat(bufferArray, buffer);
+    }
+     strcpy(result, bufferArray);
 }
 
-int handlingList(int cnt, char **split, char *result, struct schema schema[])
+int handlingObject(int cnt, char **split, char *result, struct schema schema[])
 {
     if (cnt < 1)
         return 0;
@@ -118,7 +135,7 @@ int main(int argc, char **argv)
 
     if (strcmp("-v", argv[1]) == 0 || strcmp("--version", argv[1]) == 0)
     {
-        fprintf(stdout, "v0.0.5\n");
+        fprintf(stdout, "v0.0.6\n");
         return 0;
     }
 
@@ -136,6 +153,7 @@ int main(int argc, char **argv)
         fprintf(stdout, "Ошибка выделения памяти под структуру\n");
         exit(1);
     }
+    result->header = malloc(sizeof(struct header));
 
     while (fgets(row, 256, statusLog) != NULL)
     {
@@ -159,19 +177,27 @@ int main(int argc, char **argv)
         {
             if (strcmp("TITLE", columnArr[0]) == 0)
             {
-                handlingTitle(cnt, columnArr, result->title);
+                handlingString(cnt, columnArr, result->title);
             }
             if (strcmp("TIME", columnArr[0]) == 0)
             {
-                handlingTime(cnt, columnArr, result->time);
+                handlingArray(cnt, columnArr, result->time);
+            }
+            if (strcmp("HEADER", columnArr[0]) == 0 && strcmp("CLIENT_LIST", columnArr[1]) == 0)
+            {
+                handlingArray(cnt - 1, columnArr + 1, result->header->clientList);
+            }
+            if (strcmp("HEADER", columnArr[0]) == 0 && strcmp("ROUTING_TABLE", columnArr[1]) == 0)
+            {
+                handlingArray(cnt - 1, columnArr + 1, result->header->routingTable);
             }
             if (strcmp("CLIENT_LIST", columnArr[0]) == 0)
             {
-                handlingList(cnt, columnArr, result->clientList, clientSchema);
+                handlingObject(cnt, columnArr, result->clientList, clientSchema);
             }
             if (strcmp("ROUTING_TABLE", columnArr[0]) == 0)
             {
-                handlingList(cnt, columnArr, result->routingTable, routingSchema);
+                handlingObject(cnt, columnArr, result->routingTable, routingSchema);
             }
         }
 
@@ -182,9 +208,11 @@ int main(int argc, char **argv)
         free(columnArr);
     }
 
-    fprintf(stdout, "{\"title\":\"%s\",\"time\":%s,\"clientList\":[%s],\"routingTable\":[%s]}",
-            result->title, result->time, result->clientList, result->routingTable);
+    Header header = result->header;
+    fprintf(stdout, "{\"title\":\"%s\",\"time\":[%s],\"clientList\":[%s],\"routingTable\":[%s],\"header\":{\"clientList\":[%s],\"routingTable\":[%s]}}",
+            result->title, result->time, result->clientList, result->routingTable, header->clientList, header->routingTable);
 
+    free(result->header);
     free(result);
     fclose(statusLog);
 }
